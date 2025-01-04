@@ -7,10 +7,11 @@
   <!-- 1) EmailJS-SDK über jsDelivr laden -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   
-  <!-- 2) EmailJS initialisieren mit Public Key -->
+  <!-- 2) EmailJS initialisieren mit  Public Key -->
   <script>
     (function(){
       emailjs.init("ib3N2g4twP8C7RKSt");
+      console.log("EmailJS init fertig");
     })();
   </script>
 
@@ -27,9 +28,41 @@
       color: #fff;
       font-family: sans-serif;
       overflow: hidden;  /* kein Scrollen */
+      position: relative; 
     }
+
+    /* Canvas fürs Feuerwerk */
     canvas {
+      position: absolute;  
+      top: 0;
+      left: 0;
+      z-index: 0;          
+      width: 100%;
+      height: 100%;
       display: block;
+    }
+
+    /* =====================================================
+       BLINKENDER TEXT OBEN
+       ===================================================== */
+    .blink-text {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #fff;
+      font-weight: bold;
+      font-size: 1.2rem;
+      z-index: 9999; 
+      animation: blink 1s infinite alternate;
+      text-align: center;
+      padding: 0.3em 1em;
+      background: rgba(0,0,0,0.4); 
+      border-radius: 8px;
+    }
+    @keyframes blink {
+      0%   { opacity: 1; }
+      100% { opacity: 0; }
     }
 
     /* =====================================================
@@ -47,7 +80,7 @@
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.7s, visibility 0.7s;
-      z-index: 999;
+      z-index: 999; 
     }
     .overlay.show {
       opacity: 1;
@@ -67,12 +100,12 @@
     button {
       position: relative;
       display: inline-block;
-      background: #000;     /* Schwarzer Kern */
+      background: #000;     
       color: #fff;
       font-size: 1rem;
       font-weight: 600;
       border-radius: 40px;
-      border: 2px solid #0ef; /* Neon-Rand */
+      border: 2px solid #0ef; 
       padding: 0.7em 1.4em;
       cursor: pointer;
       transition: all 0.3s ease;
@@ -126,7 +159,7 @@
       border-radius: 20px;
       padding: 2em;
       z-index: 9999;
-      display: none;  /* wird per JS angezeigt */
+      display: none;  
       animation: fadePop 1s forwards;
       background: linear-gradient(270deg, #ff008e, #00ffe7, #ffd500, #ffffff);
       background-size: 600% 600%;
@@ -187,9 +220,43 @@
       text-fill-color: transparent;
       margin-bottom: 0.5em;
     }
+
+    /* =====================================================
+       EIGENE ANTWORT-FELD + WEITER-BUTTON
+       ===================================================== */
+    .custom-answer-input {
+      display: none; /* Anfangs unsichtbar */
+      width: 100%;
+      max-width: 400px;
+      margin: 0.5em auto;
+      padding: 0.6em;
+      border: 2px solid #0ef;
+      border-radius: 12px;
+      background: #222;
+      color: #fff;
+      outline: none;
+    }
+    .weiter-btn {
+      display: none; /* Anfangs unsichtbar */
+      background: #222; /* abgesetzte Neon-Farbe */
+      border: 2px solid #f0f;
+      margin-top: 0.5em;
+    }
+    .weiter-btn:hover {
+      box-shadow:
+        0 0 5px #f0f,
+        0 0 15px #f0f,
+        0 0 30px #f0f;
+      transform: scale(1.05);
+    }
   </style>
 </head>
 <body>
+<!-- BLINKENDER TEXT -->
+<div class="blink-text" id="blinkText">
+  Bleib bis zum Ende und erfahre deinen Gewinn für 2k25
+</div>
+
 <!-- CANVAS: Feuerwerk -->
 <canvas id="fireworksCanvas"></canvas>
 
@@ -326,9 +393,7 @@ class Rocket {
     this.exploded=true;
     if(this.textPoints){
       for(let pt of this.textPoints){
-        this.particles.push(
-          new Particle(this.x,this.y,this.color,pt.x,pt.y)
-        );
+        this.particles.push(new Particle(this.x,this.y,this.color,pt.x,pt.y));
       }
     } else {
       for(let i=0;i<40;i++){
@@ -338,7 +403,7 @@ class Rocket {
   }
 }
 
-// Hilfsfunktion: Text -> Pixelpunkte
+// Text -> Pixelpunkte
 function getLetterPoints(letter, fontSize=60, fontFamily='Arial'){
   hiddenCtx.clearRect(0,0,hiddenCanvas.width,hiddenCanvas.height);
   hiddenCtx.fillStyle='white';
@@ -384,7 +449,7 @@ function launchPhrase(str, startX, startY, onComplete=null){
   const iv=setInterval(()=>{
     if(i>=str.length){
       clearInterval(iv);
-      onComplete && onComplete();
+      if(onComplete) onComplete();
       return;
     }
     const letter=str[i];
@@ -404,7 +469,7 @@ function launchPhrase(str, startX, startY, onComplete=null){
   },500);
 }
 
-// Intro-Texte als Feuerwerk
+// Feuerwerk-Texte
 const line1Y=window.innerHeight*0.3;
 const line2Y=window.innerHeight*0.4;
 const line3Y=window.innerHeight*0.5;
@@ -415,11 +480,12 @@ launchPhrase("Frohes neues", startX, line1Y, ()=>{
     launchPhrase("Jahr 2025", startX, line2Y, ()=>{
       setTimeout(()=>{
         launchPhrase("Von Ultrich", startX, line3Y, ()=>{
-          // Warte 3s => Quiz Overlay
+          // Warte 3s => Quiz
           setTimeout(()=>{
             rockets=[];
             ctx.clearRect(0,0,canvas.width,canvas.height);
             document.getElementById('quizOverlay').classList.add('show');
+            console.log("Quiz eingeblendet");
           },3000);
         });
       },800);
@@ -428,20 +494,17 @@ launchPhrase("Frohes neues", startX, line1Y, ()=>{
 });
 
 /* =====================================================
-   TEIL B: QUIZ (8 Fragen) + GEWINNE (35 Stufen) + E-MAIL
+   QUIZ
    ===================================================== */
-const quizOverlay = document.getElementById('quizOverlay');
-const quizContainer = document.getElementById('quizContainer');
+const blinkText       = document.getElementById("blinkText");
+const quizOverlay     = document.getElementById('quizOverlay');
+const quizContainer   = document.getElementById('quizContainer');
 
 let currentQ=0;
 let totalScore=0;
-/** 
- * userAnswers sammelt die Texte der ausgewählten Antworten, 
- * damit  später in der E-Mail sehbar.
- */
 let userAnswers = [];
 
-// Fragenkatalog
+// Fragen 
 const questions = [
   {
     text: "1) Woher nimmst du 2025 deine Motivation?",
@@ -541,15 +604,18 @@ const questions = [
   }
 ];
 
-// Intro zum Quiz anzeigen
+// Quiz-Start
 renderIntroQuiz();
 function renderIntroQuiz(){
   quizContainer.innerHTML = `
     <h2>Neujahrs-Quiz (8 Fragen)</h2>
-    <p>Jede Frage hat 7 Antworten, finde deinen Gewinn!</p>
+    <p>Jede Frage hat 7 Antworten (plus eigene), finde deinen Gewinn!</p>
     <button id="startQuizBtn">Los geht's</button>
   `;
   document.getElementById('startQuizBtn').onclick = () => {
+    // blinkender Text ausblenden
+    blinkText.style.display = "none";
+    // erste Frage
     showQuestion();
   };
 }
@@ -561,49 +627,101 @@ function showQuestion(){
     return;
   }
   const q = questions[currentQ];
+
+  // Container leeren & befüllen
   quizContainer.innerHTML = `
     <h3>${q.text}</h3>
     <div id="answerArea"></div>
   `;
   const area = document.getElementById('answerArea');
-  
+
+  // Normale Antworten
   q.answers.forEach(ans => {
     const b = document.createElement('button');
     b.textContent = ans.text;
     b.onclick = () => {
       totalScore += ans.score;
-      // Merke die gewählte Antwort
       userAnswers.push(`[${q.text}] -> ${ans.text}`);
       currentQ++;
       showQuestion();
     };
     area.appendChild(b);
   });
+
+  //  "Anderes" mit Textfeld und "Weiter"-Button ===
+  // 1) "Anderes..." Button
+  const anderesBtn = document.createElement('button');
+  anderesBtn.textContent = "Anderes ...";
+  area.appendChild(anderesBtn);
+
+  // 2) Ein Input-Feld + "Weiter"-Button, anfangs hidden
+  const customInput = document.createElement('input');
+  customInput.type = "text";
+  customInput.placeholder = "Eigene Antwort hier eingeben...";
+  customInput.className = "custom-answer-input";
+
+  const weiterBtn = document.createElement('button');
+  weiterBtn.textContent = "Weiter";
+  weiterBtn.className = "weiter-btn";
+
+  // Einfügen ins DOM
+  area.appendChild(customInput);
+  area.appendChild(weiterBtn);
+
+  // Klick auf "Anderes ..." => Button verschwindet, Input erscheint
+  anderesBtn.onclick = () => {
+    anderesBtn.style.display = "none";
+    customInput.style.display = "block";
+    // Falls man was tippt, soll "Weiter" auftauchen
+    customInput.value = "";
+    customInput.focus();
+    weiterBtn.style.display = "none"; 
+  };
+
+  // Input-Event: wenn was drin ist, zeig "Weiter" an
+  customInput.addEventListener("input", () => {
+    const val = customInput.value.trim();
+    if(val.length > 0){
+      weiterBtn.style.display = "inline-block";
+    } else {
+      weiterBtn.style.display = "none";
+    }
+  });
+
+  // Klick auf "Weiter"
+  weiterBtn.onclick = () => {
+    const val = customInput.value.trim();
+    if(val.length > 0){
+      // Score z.B. 0
+      const customScore = 0;
+      totalScore += customScore;
+      userAnswers.push(`[${q.text}] -> (Anderes): ${val}`);
+      currentQ++;
+      showQuestion();
+    }
+  };
 }
 
 /* =====================================================
-   E-Mail-Funktion via EmailJS
+   EmailJS + Personal Data
    ===================================================== */
 function sendEmail(name, age, gender, answers) {
   const templateParams = {
     name:    name,
     age:     age,
     gender:  gender,
-    answers: answers.join("\n") // Zeilenweise, oder kommasepariert
+    answers: answers.join("\n")
   };
 
   emailjs.send("service_gi1cp3a", "template_19n42t2", templateParams)
     .then(() => {
       console.log("E-Mail erfolgreich gesendet!");
     })
-    .catch((error) => {
+    .catch(error => {
       console.error("Fehler beim Senden der E-Mail:", error);
     });
 }
 
-/* =====================================================
-   Name/Alter/Geschlecht abfragen und E-Mail versenden
-   ===================================================== */
 function askForPersonalData() {
   quizContainer.innerHTML = `
     <h2>Fast fertig!</h2>
@@ -636,19 +754,17 @@ function askForPersonalData() {
       return;
     }
 
-    // E-Mail  senden
+    // E-Mail
     sendEmail(nameVal, ageVal, genderVal, userAnswers);
 
-    // Anschließend Gewinn anzeigen
     showWinResult(nameVal, ageVal, genderVal);
   };
 }
 
 /* =====================================================
-   Gewinn ermitteln & anzeigen
+   Gewinn-Anzeige
    ===================================================== */
 function showWinResult(nameVal, ageVal, genderVal){
-  // 35 verschiedene Gewinne – Score max. 56 => stufe = floor(score/2), max 34
   const stufe = Math.floor(totalScore/2);
   const gains = [
     "Kleines Schoko-Paket 🍫",
@@ -697,15 +813,15 @@ function showWinResult(nameVal, ageVal, genderVal){
   `;
   document.getElementById('winBtn').onclick = () => {
     animateWinPopup(gewinn, () => {
-      // Quiz wegblenden
       document.getElementById('quizOverlay').classList.remove('show');
-      // Aurora-Finale
       showEndAurora(nameVal, genderVal);
     });
   };
 }
 
-/* Kurzes Popup beim Gewinn */
+/* =====================================================
+   PopUp + Aurora-Finale
+   ===================================================== */
 function animateWinPopup(text, onComplete){
   const pop = document.getElementById('winPopup');
   pop.innerHTML = `
@@ -717,13 +833,10 @@ function animateWinPopup(text, onComplete){
 
   setTimeout(()=>{
     pop.style.display = 'none';
-    onComplete && onComplete();
+    if(onComplete) onComplete();
   },2500);
 }
 
-/* =====================================================
-   AURORA-FINALE: Nur Name & Geschlecht => Anrede + Name
-   ===================================================== */
 function showEndAurora(name, gender) {
   let anrede = "Liebes";
   if (gender === "m") anrede = "Lieber";
