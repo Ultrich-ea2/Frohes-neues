@@ -3,16 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <title>Neujahr 2025 – Frohes Neues Jahr</title>
+  <!-- EmailJS-SDK laden -->
   <script src="https://cdn.emailjs.com/sdk/3.2.0/email.min.js"></script>
   <script>
     // Initialisiere EmailJS mit deinem Public Key
     emailjs.init("ib3N2g4twP8C7RKSt");
   </script>
   <style>
-       html, body { margin: 0; padding: 0; background: #000; color: #fff; overflow: hidden; font-family: sans-serif; }
-    canvas { display: block; }
-      /* =====================================================
-       0) GRUNDLAYOUT
+    /* =====================================================
+       GRUNDLAYOUT
        ===================================================== */
     html, body {
       margin: 0;
@@ -29,7 +28,7 @@
     }
 
     /* =====================================================
-       1) QUIZ-OVERLAY
+       QUIZ-OVERLAY
        ===================================================== */
     .overlay {
       position: absolute;
@@ -58,7 +57,7 @@
     }
 
     /* =====================================================
-       2) NEON-BUTTONS (schwarzer Kern, neonfarbener Rand)
+       NEON-BUTTONS
        ===================================================== */
     button {
       position: relative;
@@ -83,7 +82,7 @@
     }
 
     /* =====================================================
-       3) GEWINN-POPUP + EMOJI
+       GEWINN-POPUP
        ===================================================== */
     .win-popup {
       position: fixed;
@@ -110,9 +109,7 @@
     }
 
     /* =====================================================
-       4) AURORA-FINALE: Zeigt nur Namen (kein Alter),
-          + "Lieber/Liebe/Liebes" je nach Geschlecht
-          + animierter Farbverlauf & Kreise
+       AURORA-FINALE
        ===================================================== */
     .final-aurora {
       position: fixed;
@@ -126,7 +123,6 @@
       z-index: 9999;
       display: none;  /* wird per JS angezeigt */
       animation: fadePop 1s forwards;
-      /* =========== Animated Farbverlauf-Hintergrund =========== */
       background: linear-gradient(270deg, #ff008e, #00ffe7, #ffd500, #ffffff);
       background-size: 600% 600%;
       animation: gradMove 8s infinite alternate;
@@ -195,7 +191,7 @@
 <!-- QUIZ-Overlay -->
 <div class="overlay" id="quizOverlay">
   <div class="quiz-container" id="quizContainer">
-    <!-- Per JavaScript gefüllt -->
+    <!-- Wird per JavaScript gefüllt -->
   </div>
 </div>
 
@@ -215,25 +211,22 @@
 
 <script>
 /* =====================================================
-   Feuerwerk, Quiz und Gewinne
-   ===================================================== */
-/* =====================================================
-   TEIL A: Feuerwerk – 3 Zeilen
+   TEIL A: FEUERWERK
    ===================================================== */
 const canvas = document.getElementById('fireworksCanvas');
 const ctx = canvas.getContext('2d');
-function resizeCanvas(){
-  canvas.width=window.innerWidth;
-  canvas.height=window.innerHeight;
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 }
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-// Hilfs-Canvas
 const hiddenCanvas = document.createElement('canvas');
-hiddenCanvas.width=100;
-hiddenCanvas.height=100;
-const hiddenCtx=hiddenCanvas.getContext('2d');
+hiddenCanvas.width = 100;
+hiddenCanvas.height = 100;
+const hiddenCtx = hiddenCanvas.getContext('2d');
 
 const COLORS = ['#ff2d00','#ffa700','#ffed00','#00ff94','#00e1ff','#bd00ff','#ffffff'];
 function randomColor(){
@@ -335,7 +328,7 @@ class Rocket {
   }
 }
 
-// Text -> Pixel
+// Hilfsfunktion: Text -> Pixelpunkte
 function getLetterPoints(letter, fontSize=60, fontFamily='Arial'){
   hiddenCtx.clearRect(0,0,hiddenCanvas.width,hiddenCanvas.height);
   hiddenCtx.fillStyle='white';
@@ -361,6 +354,7 @@ function getLetterPoints(letter, fontSize=60, fontFamily='Arial'){
 }
 
 let rockets=[];
+
 function animateFireworks(){
   requestAnimationFrame(animateFireworks);
   ctx.fillStyle='rgba(0,0,0,0.2)';
@@ -380,7 +374,7 @@ function launchPhrase(str, startX, startY, onComplete=null){
   const iv=setInterval(()=>{
     if(i>=str.length){
       clearInterval(iv);
-      onComplete&&onComplete();
+      onComplete && onComplete();
       return;
     }
     const letter=str[i];
@@ -400,7 +394,7 @@ function launchPhrase(str, startX, startY, onComplete=null){
   },500);
 }
 
-// Drei Zeilen
+// Intro-Texte als Feuerwerk
 const line1Y=window.innerHeight*0.3;
 const line2Y=window.innerHeight*0.4;
 const line3Y=window.innerHeight*0.5;
@@ -411,7 +405,7 @@ launchPhrase("Frohes neues", startX, line1Y, ()=>{
     launchPhrase("Jahr 2025", startX, line2Y, ()=>{
       setTimeout(()=>{
         launchPhrase("Von Ultrich", startX, line3Y, ()=>{
-          // Warte 3s => Quiz
+          // Warte 3s => Quiz Overlay
           setTimeout(()=>{
             rockets=[];
             ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -424,14 +418,21 @@ launchPhrase("Frohes neues", startX, line1Y, ()=>{
 });
 
 /* =====================================================
-   TEIL B: 8 Fragen, 7 Antworten, 35 Gewinne
-   + Name, Alter, Geschlecht => Endtext NUR Name
+   TEIL B: QUIZ (8 Fragen) + GEWINNE (35 Stufen) + E-MAIL
    ===================================================== */
-const quizOverlay=document.getElementById('quizOverlay');
-const quizContainer=document.getElementById('quizContainer');
+const quizOverlay = document.getElementById('quizOverlay');
+const quizContainer = document.getElementById('quizContainer');
 
-// 8 Fragen, je 7 Antworten => Score 1..7
-// => max. 56
+let currentQ=0;
+let totalScore=0;
+
+/** 
+ * userAnswers sammelt die Texte der ausgewählten Antworten, 
+ * damit du sie später in der E-Mail siehst.
+ */
+let userAnswers = [];
+
+// Fragenkatalog
 const questions = [
   {
     text: "1) Woher nimmst du 2025 deine Motivation?",
@@ -531,38 +532,39 @@ const questions = [
   }
 ];
 
-let currentQ=0;
-let totalScore=0;
-
-/* Intro: Startquiz */
+// Intro zum Quiz anzeigen
 renderIntroQuiz();
 function renderIntroQuiz(){
-  quizContainer.innerHTML=
+  quizContainer.innerHTML = `
     <h2>Neujahrs-Quiz (8 Fragen)</h2>
     <p>Jede Frage hat 7 Antworten, finde deinen Gewinn!</p>
     <button id="startQuizBtn">Los geht's</button>
-  ;
-  document.getElementById('startQuizBtn').onclick=()=>{
+  `;
+  document.getElementById('startQuizBtn').onclick = () => {
     showQuestion();
   };
 }
 
+// Frage anzeigen
 function showQuestion(){
-  if(currentQ>=questions.length){
+  if(currentQ >= questions.length){
     askForPersonalData();
     return;
   }
-  const q=questions[currentQ];
-  quizContainer.innerHTML=
+  const q = questions[currentQ];
+  quizContainer.innerHTML = `
     <h3>${q.text}</h3>
     <div id="answerArea"></div>
-  ;
-  const area=document.getElementById('answerArea');
-  q.answers.forEach(ans=>{
-    const b=document.createElement('button');
-    b.textContent=ans.text;
-    b.onclick=()=>{
+  `;
+  const area = document.getElementById('answerArea');
+  
+  q.answers.forEach(ans => {
+    const b = document.createElement('button');
+    b.textContent = ans.text;
+    b.onclick = () => {
       totalScore += ans.score;
+      // Merke die gewählte Antwort
+      userAnswers.push(`[${q.text}] -> ${ans.text}`);
       currentQ++;
       showQuestion();
     };
@@ -570,46 +572,75 @@ function showQuestion(){
   });
 }
 
-/* Name, Alter, Geschlecht => am Ende NUR Name im Aurora-Text */
-function askForPersonalData(){
-  quizContainer.innerHTML=
+/* =====================================================
+   E-Mail-Funktion via EmailJS
+   ===================================================== */
+function sendEmail(name, age, gender, answers) {
+  const templateParams = {
+    name:    name,
+    age:     age,
+    gender:  gender,
+    answers: answers.join("\n") // Zeilenweise, oder kommasepariert
+  };
+
+  emailjs.send("service_gi1cp3a", "template_19n42t2", templateParams)
+    .then(() => {
+      console.log("E-Mail erfolgreich gesendet!");
+    })
+    .catch((error) => {
+      console.error("Fehler beim Senden der E-Mail:", error);
+    });
+}
+
+/* =====================================================
+   Name/Alter/Geschlecht abfragen und E-Mail versenden
+   ===================================================== */
+function askForPersonalData() {
+  quizContainer.innerHTML = `
     <h2>Fast fertig!</h2>
     <p>Bitte gib Name, Alter & Geschlecht ein:</p>
-    <input type="text" id="userName" placeholder="Name" style="display:block;width:100%;margin:0.5em auto;padding:0.6em;">
-    <input type="number" id="userAge" placeholder="Alter" style="display:block;width:100%;margin:0.5em auto;padding:0.6em;">
+    <input type="text" id="userName" placeholder="Name"
+           style="display:block;width:100%;margin:0.5em auto;padding:0.6em;">
+    <input type="number" id="userAge" placeholder="Alter"
+           style="display:block;width:100%;margin:0.5em auto;padding:0.6em;">
     <div style="margin:1em 0;">
       <label><input type="radio" name="gender" value="m"> Männlich</label>
       <label style="margin-left:1em;"><input type="radio" name="gender" value="f"> Weiblich</label>
       <label style="margin-left:1em;"><input type="radio" name="gender" value="x"> Divers</label>
     </div>
     <button id="confirmBtn">Bestätigen</button>
-  ;
-  document.getElementById('confirmBtn').onclick=()=>{
-    const nameVal=(document.getElementById('userName').value||"").trim();
-    const ageVal=document.getElementById('userAge').value||"";
-    const gEls=document.getElementsByName('gender');
-    let genderVal="";
-    for(let g of gEls){
-      if(g.checked){
-        genderVal=g.value; break;
+  `;
+  document.getElementById("confirmBtn").onclick = () => {
+    const nameVal = (document.getElementById("userName").value || "").trim();
+    const ageVal  = document.getElementById("userAge").value || "";
+    const gEls    = document.getElementsByName("gender");
+    let genderVal = "";
+    for (let g of gEls) {
+      if (g.checked) {
+        genderVal = g.value;
+        break;
       }
     }
-    if(!nameVal||!ageVal||!genderVal){
+
+    if (!nameVal || !ageVal || !genderVal) {
       alert("Bitte Name, Alter und Geschlecht angeben!");
       return;
     }
+
+    // E-Mail an dich senden
+    sendEmail(nameVal, ageVal, genderVal, userAnswers);
+
+    // Anschließend Gewinn anzeigen
     showWinResult(nameVal, ageVal, genderVal);
   };
 }
 
-/* 35 STUFEN => JE 2 SCORE-SCHRITTE BIS 70 (auch wenn max. 56) */
+/* =====================================================
+   Gewinn ermitteln & anzeigen
+   ===================================================== */
 function showWinResult(nameVal, ageVal, genderVal){
-  // Erstelle 35 (!) unterschiedliche Gewinne
-  // Alle 2 Score-Punkte => nächste Stufe => 0..2 => stufe 0, 3..4 => stufe1, etc.
-  // wir bilden stufe = Math.floor(totalScore/2), max 34.
+  // 35 verschiedene Gewinne – Score max. 56 => stufe = floor(score/2), max 34
   const stufe = Math.floor(totalScore/2);
-  
-  // 35 => index 0..34
   const gains = [
     "Kleines Schoko-Paket 🍫",
     "Handwärmer & Tee-Set 🍵",
@@ -647,117 +678,43 @@ function showWinResult(nameVal, ageVal, genderVal){
     "Survival-Kurs in der Wildnis 🏕️",
     "Ballon-Festival-Besuch 🎈✨"
   ];
-  
-  // Index clamp: stufe <= 34
-  let index = stufe;
-  if(index>34) index=34;
+  let index = stufe > 34 ? 34 : stufe;
   const gewinn = gains[index];  
 
-  quizContainer.innerHTML=
+  quizContainer.innerHTML = `
     <h3>Dein Gewinn</h3>
     <p>${gewinn}</p>
     <button id="winBtn">Abholen</button>
-  ;
-  document.getElementById('winBtn').onclick=()=>{
+  `;
+  document.getElementById('winBtn').onclick = () => {
     animateWinPopup(gewinn, () => {
-      // Quiz weg
+      // Quiz wegblenden
       document.getElementById('quizOverlay').classList.remove('show');
-      // Finale Aurora-Box => Nur Name, Geschlecht => Lieber/Liebe/Liebes
+      // Aurora-Finale
       showEndAurora(nameVal, genderVal);
     });
   };
 }
 
-/* Kurzes Popup */
+/* Kurzes Popup beim Gewinn */
 function animateWinPopup(text, onComplete){
-  const pop=document.getElementById('winPopup');
-  pop.innerHTML=
+  const pop = document.getElementById('winPopup');
+  pop.innerHTML = `
     <div class="emoji">🎉</div>
     <p><strong>${text}</strong></p>
-  ;
-  pop.style.display='block';
-  pop.style.animation='popIn 0.7s forwards';
+  `;
+  pop.style.display = 'block';
+  pop.style.animation = 'popIn 0.7s forwards';
 
   setTimeout(()=>{
-    pop.style.display='none';
+    pop.style.display = 'none';
     onComplete && onComplete();
   },2500);
 }
 
-/* Aurora-Finale => Nur Name + Anrede: Lieber/Liebe/Liebes */
-function showEndAurora(name, gender){
-  let anrede="Liebes";
-  if(gender==="m") anrede="Lieber";
-  if(gender==="f") anrede="Liebe";
-  
-  const fA=document.getElementById('finalAurora');
-  const nP=document.getElementById('finalName');
-  nP.innerHTML=
-    ${anrede} ${name},<br/>
-    wir wünschen dir ein fantastisches Jahr 2025!<br/>
-    Mögen all deine Träume wahr werden!
-  ;
-  fA.style.display='block';
-  fA.style.animation='fadePop 1s forwards';
-}
-/* Daten speichern und per EmailJS versenden */
-function sendEmail(name, age, gender, answers) {
-  const templateParams = {
-    name: name,
-    age: age,
-    gender: gender,
-    answers: answers.join(", "), // Konvertiere Antworten in eine Liste
-  };
-
-  emailjs.send("service_gi1cp3a", "template_19n42t2", templateParams)
-    .then(() => {
-      console.log("E-Mail erfolgreich gesendet!");
-    })
-    .catch((error) => {
-      console.error("Fehler beim Senden der E-Mail:", error);
-    });
-}
-
-/* Name, Alter, Geschlecht => am Ende NUR Name im Aurora-Text */
-function askForPersonalData() {
-  quizContainer.innerHTML = `
-    <h2>Fast fertig!</h2>
-    <p>Bitte gib Name, Alter & Geschlecht ein:</p>
-    <input type="text" id="userName" placeholder="Name" style="display:block;width:100%;margin:0.5em auto;padding:0.6em;">
-    <input type="number" id="userAge" placeholder="Alter" style="display:block;width:100%;margin:0.5em auto;padding:0.6em;">
-    <div style="margin:1em 0;">
-      <label><input type="radio" name="gender" value="m"> Männlich</label>
-      <label style="margin-left:1em;"><input type="radio" name="gender" value="f"> Weiblich</label>
-      <label style="margin-left:1em;"><input type="radio" name="gender" value="x"> Divers</label>
-    </div>
-    <button id="confirmBtn">Bestätigen</button>
-  `;
-  document.getElementById("confirmBtn").onclick = () => {
-    const nameVal = (document.getElementById("userName").value || "").trim();
-    const ageVal = document.getElementById("userAge").value || "";
-    const gEls = document.getElementsByName("gender");
-    let genderVal = "";
-    for (let g of gEls) {
-      if (g.checked) {
-        genderVal = g.value;
-        break;
-      }
-    }
-    if (!nameVal || !ageVal || !genderVal) {
-      alert("Bitte Name, Alter und Geschlecht angeben!");
-      return;
-    }
-
-    // E-Mail senden
-    const allAnswers = questions.map(q => q.text); // Fragen sammeln
-    sendEmail(nameVal, ageVal, genderVal, allAnswers);
-
-    // Weiter mit dem Gewinn
-    showWinResult(nameVal, ageVal, genderVal);
-  };
-}
-
-/* Funktion für den Aurora-Finale */
+/* =====================================================
+   AURORA-FINALE: Nur Name & Geschlecht => Anrede + Name
+   ===================================================== */
 function showEndAurora(name, gender) {
   let anrede = "Liebes";
   if (gender === "m") anrede = "Lieber";
