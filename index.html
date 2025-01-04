@@ -3,12 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <title>Neujahr 2025 – Frohes Neues Jahr</title>
-  <!-- EmailJS-SDK laden -->
+  
+  <!-- 1) EmailJS-SDK laden -->
   <script src="https://cdn.emailjs.com/sdk/3.2.0/email.min.js"></script>
+
+  <!-- 2) EmailJS-Init mit deinem Public Key -->
   <script>
-    // Initialisiere EmailJS mit deinem Public Key
-    emailjs.init("ib3N2g4twP8C7RKSt");
+    (function(){
+      emailjs.init("ib3N2g4twP8C7RKSt");
+    })();
   </script>
+
   <style>
     /* =====================================================
        GRUNDLAYOUT
@@ -228,7 +233,10 @@ hiddenCanvas.width = 100;
 hiddenCanvas.height = 100;
 const hiddenCtx = hiddenCanvas.getContext('2d');
 
-const COLORS = ['#ff2d00','#ffa700','#ffed00','#00ff94','#00e1ff','#bd00ff','#ffffff'];
+const COLORS = [
+  '#ff2d00','#ffa700','#ffed00','#00ff94',
+  '#00e1ff','#bd00ff','#ffffff'
+];
 function randomColor(){
   return COLORS[Math.floor(Math.random()*COLORS.length)];
 }
@@ -318,7 +326,9 @@ class Rocket {
     this.exploded=true;
     if(this.textPoints){
       for(let pt of this.textPoints){
-        this.particles.push(new Particle(this.x,this.y,this.color,pt.x,pt.y));
+        this.particles.push(
+          new Particle(this.x,this.y,this.color,pt.x,pt.y)
+        );
       }
     } else {
       for(let i=0;i<40;i++){
@@ -344,7 +354,7 @@ function getLetterPoints(letter, fontSize=60, fontFamily='Arial'){
   const points=[];
   for(let y=0;y<hiddenCanvas.height;y+=2){
     for(let x=0;x<hiddenCanvas.width;x+=2){
-      const idx=(y*hiddenCanvas.width+x)*4;
+      const idx=(y*hiddenCanvas.width + x)*4;
       if(data[idx+3]>128){
         points.push({x,y});
       }
@@ -425,7 +435,6 @@ const quizContainer = document.getElementById('quizContainer');
 
 let currentQ=0;
 let totalScore=0;
-
 /** 
  * userAnswers sammelt die Texte der ausgewählten Antworten, 
  * damit du sie später in der E-Mail siehst.
@@ -733,3 +742,4 @@ function showEndAurora(name, gender) {
 </script>
 </body>
 </html>
+
