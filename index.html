@@ -739,7 +739,7 @@ function askForPersonalData() {
   `;
   document.getElementById("confirmBtn").onclick = () => {
     const nameVal = (document.getElementById("userName").value || "").trim();
-    const ageVal  = document.getElementById("userAge").value || "";
+    const ageVal = parseInt(document.getElementById("userAge").value, 10) || 0;
     const gEls    = document.getElementsByName("gender");
     let genderVal = "";
     for (let g of gEls) {
@@ -752,7 +752,11 @@ function askForPersonalData() {
     if (!nameVal || !ageVal || !genderVal) {
       alert("Bitte Name, Alter und Geschlecht angeben!");
       return;
+    }else if (ageVal < 1 || ageVal > 120) {
+      alert("Bitte  Alter (1-120)");
+      return;
     }
+
 
     // E-Mail
     sendEmail(nameVal, ageVal, genderVal, userAnswers);
