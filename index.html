@@ -736,6 +736,7 @@ function askForPersonalData() {
       <label style="margin-left:1em;"><input type="radio" name="gender" value="x"> Divers</label>
     </div>
     <button id="confirmBtn">Bestätigen</button>
+    <p id="errorMessage" style="color: red; margin-top: 0.5em;"></p>
   `;
   document.getElementById("confirmBtn").onclick = () => {
     const nameVal = (document.getElementById("userName").value || "").trim();
@@ -750,10 +751,12 @@ function askForPersonalData() {
     }
 
     if (!nameVal || !ageVal || !genderVal) {
-      alert("Bitte Name, Alter und Geschlecht angeben!");
+      const err = document.getElementById("errorMessage");
+      err.textContent = "Bitte Name, Alter und Geschlecht angeben!";
       return;
     }else if (ageVal < 1 || ageVal > 120) {
-      alert("Bitte  Alter (1-120)");
+      const err2 = document.getElementById("errorMessage");
+      err2.textContent = "Bitte  Alter (1-120)";
       return;
     }
 
